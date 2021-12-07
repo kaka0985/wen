@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--
+       1、开启自动装配  @Autowired @Resource
+       2、扫描注解所在的包，让这些带有注解的类实例化创建出对象
+       3、指定jdbc.properties数据源信息文件所在位置
+       4、创建dataSource数据源对象 ${driver}....
+       5、创建SqlSessionFactory对象 注入 DataSource，起别名，加载mapper.xml文件
+       6、创建MapperScanerConfig对象，这里设置mapper接口所在的包，内置了一个SqlSessionFactory
+       7、配置事务控制TransactionManager,开启注解对事物的支持
+    -->
+    <!--开启自动装配-->
+    <context:annotation-config/>
+    <!--开启扫描包-->
+    <context:component-scan base-package="com.tledu"/>
+    <!--指定jdbc.properties数据源信息文件所在位置-->
+    <context:property-placeholder location="classpath:jdbc.properties" />
+    <!--创建dataSource数据源对象-->
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+
+    </bean>
+    <!--创建SqlSessionFactory对象-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="typeAliasesPackage" value="com.tledu.model"/>
+        <property name="mapperLocations" value="classpath:com/tledu/mapper/UserMapper.xml"/>
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <value>
+                            helperDialect=mysql
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <!--创建MapperScanerConfig对象-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.tledu.mapper"/>
+    </bean>
+
+
+    <!--配置事务-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!--开启注解对事务的支持-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+    <!--文件上传初始化MultipartResolver,指定上传文件的大小-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--单位b-->
+        <property name="defaultEncoding" value="utf-8"/>
+        <property name="maxUploadSize" value="5000000000"/>
+    </bean>
+
+
+    <import resource="classpath:spring-mvc.xml"/>
+
+
+
+</beans>

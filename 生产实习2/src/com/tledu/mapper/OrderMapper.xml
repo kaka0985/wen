@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tledu.mapper.OrderMapper">
+    <insert id="addOrder" parameterType="Order">
+        insert into t_order(oid,bid,count,totalprice,createdate,status,uid)
+        values(#{oid},#{bid},#{count},#{totalprice},#{createdate},#{status},#{uid});
+    </insert>
+    <select id="getOrderById" parameterType="User" resultType="Order">
+        select *,sum(o.totalprice) as sumprice from t_order o GROUP BY o.oid HAVING o.uid = #{id}
+    </select>
+</mapper>
